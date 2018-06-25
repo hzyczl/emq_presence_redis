@@ -28,7 +28,7 @@
 
 -define(SERVER, ?MODULE).
 
--record(state, {}).
+-record(state, {prefix="",expire =1000}).
 
 %%%===================================================================
 %%% API
@@ -65,8 +65,10 @@ start_link(Args) ->
   {ok, State :: #state{}} | {ok, State :: #state{}, timeout() | hibernate} |
   {stop, Reason :: term()} | ignore).
 init(Args) ->
-  Args,
-  {ok, #state{}}.
+  Props = proplists:get_value(connected,Args),
+  Prefix = proplists:get_value(key_prefix,Props),
+  Expire = proplists:get_value(expire,Props),
+  {ok, #state{prefix = Prefix,expire = Expire}}.
 
 %%--------------------------------------------------------------------
 %% @private
@@ -116,7 +118,8 @@ handle_cast(_Request, State) ->
   {stop, Reason :: term(), NewState :: #state{}}).
 handle_info({connected,C = #mqtt_client{}}, State) ->
   lager:info("connected ~p",C),
-
+  Key = State#state.prefix ++ C#mqtt_client.client_id,
+  redis:update_client(Key,C),
   {noreply, State};
 handle_info(_Info, State) ->
   {noreply, State}.
