@@ -29,7 +29,7 @@ connect(Opts) ->
     ?ENV(password, Opts),
     100,5000).
 
--spec(update_client(string(), int()) -> {ok, undefined | binary() | list()} | {error, atom() | binary()}).
+-spec(update_client(string(), integer()) -> {ok, undefined | binary() | list()} | {error, atom() | binary()}).
 update_client(Key,Expire) ->
   ecpool:with_client(?APP, fun(C) -> eredis:q(C, ["SETEX" ,Key,Expire]) end).
 
