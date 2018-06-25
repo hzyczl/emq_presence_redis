@@ -18,12 +18,33 @@
 
 -include_lib("emqttd/include/emqttd.hrl").
 
+-behaviour(ecpool_worker).
+-include("emq_presence_redis.hrl").
 -export([load/1, unload/0]).
 
 %% Hooks functions
 
 -export([on_client_connected/3, on_client_disconnected/3]).
 
+
+-define(ENV(Key, Opts), proplists:get_value(Key, Opts)).
+
+-export([connect/1, update_client/2]).
+
+%%--------------------------------------------------------------------
+%% Redis Connect/Query
+%%--------------------------------------------------------------------
+
+connect(Opts) ->
+  eredis:start_link(?ENV(host, Opts),
+    ?ENV(port, Opts),
+    ?ENV(database, Opts),
+    ?ENV(password, Opts),
+    100,5000).
+
+-spec(update_client(string(), integer()) -> {ok, undefined | binary() | list()} | {error, atom() | binary()}).
+update_client(Key,Expire) ->
+  ecpool:with_client(?APP, fun(C) -> eredis:q(C, ["SETEX" ,Key,Expire]) end).
 
 %% Called when the plugin application start
 load(Env) ->
