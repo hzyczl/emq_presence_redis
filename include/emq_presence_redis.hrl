@@ -9,4 +9,4 @@
 %%%-------------------------------------------------------------------
 -author("bobo.chen").
 
--define(APP, emq_auth_redis).
+-define(APP, emq_presence_redis).
